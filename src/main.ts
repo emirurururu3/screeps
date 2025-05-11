@@ -18,7 +18,7 @@ declare global {
   interface CreepMemory {
     role: string;
     room: string;
-    working: boolean;
+    working: string;
   }
 
   // Syntax for adding proprties to `global` (ex "global.log")
@@ -29,14 +29,44 @@ declare global {
   }
 }
 
-// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
-// This utility uses source maps to get the line numbers and file names of the original, TS source code
+import roleHarvester from "role/role.harvester";
+
+const HARVESTER_NUM = 2;
+const UPGRADER_NUM = 2;
+
+
 export const loop = ErrorMapper.wrapLoop(() => {
-var spawn = Game.spawns["Spawn1"];
-console.log(spawn);
+  var harvesters = _.filter(Game.creeps, (x) => x.memory.role == "harvester");
+  var upgraders = _.filter(Game.creeps, (x) => x.memory.role == "upgrader");
+  var spawn = Game.spawns["Spawn1"];
+  console.log(harvesters.length);
 
+ //ハーベスター作成
+  if (harvesters.length < HARVESTER_NUM){
+  let newName = "Harvester" + Game.time;
+  Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
+    role: 'harvester',
+    room: "",
+    working: ""
+  } });
+  }
+//アップグレーダー作成
+    if(upgraders.length<UPGRADER_NUM){
+    let newName = "upgrader" + Game.time;
+    Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
+      role: 'upgrader',
+      room: "",
+      working: ""
+    } });
+  }
 
-  // Automatically delete memory of missing creeps
+for(var name in Game.creeps){
+  var creep = Game.creeps[name];
+  if(creep.memory.role=="harvester"){
+    roleHarvester.run(creep);
+  }
+}
+
   for (const name in Memory.creeps) {
     if (!(name in Game.creeps)) {
       delete Memory.creeps[name];
