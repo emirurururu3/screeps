@@ -22,7 +22,7 @@ jobs:
 
       - name: Generate screeps.json from GitHub Secrets
         run: |
-          echo "{\"token\": \"${{ secrets.SCREEPS_TOKEN }}\", \"branch\": \"main\", \"ptr\": false}" > screeps.json
+          echo "{\"main\": {\"token\": \"${{ secrets.SCREEPS_TOKEN }}\", \"branch\": \"main\", \"ptr\": false}}" > screeps.json
 
       - name: Verify screeps.json content
         run: |
