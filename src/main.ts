@@ -43,22 +43,23 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
  //ハーベスター作成
   if (harvesters.length < HARVESTER_NUM){
+    console.log("aaa");
   let newName = "Harvester" + Game.time;
-  Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
+  spawn.spawnCreep([WORK, CARRY, MOVE], newName, { memory: {
     role: 'harvester',
     room: "",
     working: ""
   } });
   }
-//アップグレーダー作成
-    if(upgraders.length<UPGRADER_NUM){
-    let newName = "upgrader" + Game.time;
-    Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
-      role: 'upgrader',
-      room: "",
-      working: ""
-    } });
-  }
+// //アップグレーダー作成
+//     if(upgraders.length<UPGRADER_NUM){
+//     let newName = "upgrader" + Game.time;
+//     Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
+//       role: 'upgrader',
+//       room: "",
+//       working: ""
+//     } });
+//   }
 
 for(var name in Game.creeps){
   var creep = Game.creeps[name];
