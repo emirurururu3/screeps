@@ -5,12 +5,12 @@ on:
     branches:
       - main
 
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -20,11 +20,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Generate screeps.json from GitHub Secrets
+        run: |
+          echo '{
+            "token": "${{ secrets.SCREEPS_TOKEN }}",
+            "branch": "main",
+            "ptr": false
+          }' > screeps.json
 
       - name: Build
         run: npm run build
 
       - name: Push to Screeps
         run: npm run push-main
-        env:
-          SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
