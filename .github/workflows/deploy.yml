@@ -29,7 +29,6 @@ jobs:
           cat screeps.json
         # This step will print the contents of screeps.json to the log to verify if it's generated correctly.
 
-
       - name: Build
         run: npm run build
 
