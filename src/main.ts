@@ -1,15 +1,6 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 
 declare global {
-  /*
-    Example types, expand on these or remove them and add your own.
-    Note: Values, properties defined here do no fully *exist* by this type definiton alone.
-          You must also give them an implemention if you would like to use them. (ex. actually setting a `role` property in a Creeps memory)
-
-    Types added in this `global` block are in an ambient, global context. This is needed because `main.ts` is a module file (uses import or export).
-    Interfaces matching on name from @types/screeps will be merged. This is how you can extend the 'built-in' interfaces from @types/screeps.
-  */
-  // Memory extension samples
   interface Memory {
     uuid: number;
     log: any;
@@ -18,10 +9,9 @@ declare global {
   interface CreepMemory {
     role: string;
     room: string;
-    working: string;
+    state: string;
   }
 
-  // Syntax for adding proprties to `global` (ex "global.log")
   namespace NodeJS {
     interface Global {
       log: any;
@@ -29,45 +19,75 @@ declare global {
   }
 }
 
-import roleHarvester from "role/role.harvester";
+// 各ロールのクラスと状態をインポート
+import { RoleHarvester, HarvesterState } from "role/role.harvester";
+import { RoleUpgrader, UpgraderState } from "role/role.upgrader";
+import { RoleBuilder, BuilderState } from "role/role.builder";
 
+// 各ロールの目標数を定義
 const HARVESTER_NUM = 2;
 const UPGRADER_NUM = 2;
+const BUILDER_NUM = 1; // 追加
 
-
+// メインループ（毎tick実行）
 export const loop = ErrorMapper.wrapLoop(() => {
-  var harvesters = _.filter(Game.creeps, (x) => x.memory.role == "harvester");
-  var upgraders = _.filter(Game.creeps, (x) => x.memory.role == "upgrader");
-  var spawn = Game.spawns["Spawn1"];
-  console.log(harvesters.length);
+  // それぞれの役割を持つクリープを抽出
+  const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role === "harvester");
+  const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === "upgrader");
+  const builders = _.filter(Game.creeps, (creep) => creep.memory.role === "builder");
 
- //ハーベスター作成
-  if (harvesters.length < HARVESTER_NUM){
-    console.log("aaa");
-  let newName = "Harvester" + Game.time;
-  spawn.spawnCreep([WORK, CARRY, MOVE], newName, { memory: {
-    role: 'harvester',
-    room: "",
-    working: ""
-  } });
+  const spawn = Game.spawns["Spawn1"];
+
+  // ハーベスターの生成
+  if (harvesters.length < HARVESTER_NUM) {
+    const newName = "Harvester" + Game.time;
+    spawn.spawnCreep([WORK, CARRY, MOVE], newName, {
+      memory: {
+        role: "harvester",
+        room: "",
+        state: HarvesterState.Harvesting,
+      },
+    });
   }
-// //アップグレーダー作成
-//     if(upgraders.length<UPGRADER_NUM){
-//     let newName = "upgrader" + Game.time;
-//     Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,  { memory: {
-//       role: 'upgrader',
-//       room: "",
-//       working: ""
-//     } });
-//   }
 
-for(var name in Game.creeps){
-  var creep = Game.creeps[name];
-  if(creep.memory.role=="harvester"){
-    roleHarvester.run(creep);
+  // アップグレーダーの生成
+  if (upgraders.length < UPGRADER_NUM) {
+    const newName = "Upgrader" + Game.time;
+    spawn.spawnCreep([WORK, CARRY, MOVE], newName, {
+      memory: {
+        role: "upgrader",
+        room: "",
+        state: UpgraderState.Harvesting,
+      },
+    });
   }
-}
 
+  // ビルダーの生成（追加）
+  if (builders.length < BUILDER_NUM) {
+    const newName = "Builder" + Game.time;
+    spawn.spawnCreep([WORK, CARRY, MOVE], newName, {
+      memory: {
+        role: "builder",
+        room: "",
+        state: BuilderState.Harvesting,
+      },
+    });
+  }
+
+  // 全クリープに対してロールごとの処理を実行
+  for (const name in Game.creeps) {
+    const creep = Game.creeps[name];
+
+    if (creep.memory.role === "harvester") {
+      new RoleHarvester(creep).run();
+    } else if (creep.memory.role === "upgrader") {
+      new RoleUpgrader(creep).run();
+    } else if (creep.memory.role === "builder") {
+      new RoleBuilder(creep).run();
+    }
+  }
+
+  // メモリ上に存在していてゲーム上には存在しないクリープを削除
   for (const name in Memory.creeps) {
     if (!(name in Game.creeps)) {
       delete Memory.creeps[name];
